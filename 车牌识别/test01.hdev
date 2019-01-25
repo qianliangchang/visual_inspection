@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<hdevelop file_version="1.2" halcon_version="18.05.0.1">
+<procedure name="main">
+<interface/>
+<body>
+<c>*1采集图像</c>
+<l>read_image (Image, 'H:/projects/visual inspection/demo1/车牌.jpg')</l>
+<l>dev_close_window ()</l>
+<l>dev_open_window (0, 0, 512, 512, 'black', WindowHandle)</l>
+<l>dev_display (Image)</l>
+<c>*2预处理之车牌定位，一般定位有两种，一个是blob像素团块定位，一个是模板匹配定位，然后几何变换转正</c>
+<l>decompose3 (Image, Red, Green, Blue)</l>
+<l>trans_from_rgb (Red, Green, Blue, Hue, Saturation, Intensity, 'hsv')</l>
+<c>*注意这里的颜色通道转换是为了方便图像分割，也就是车牌定位，这里用的比较通用简单的blob，在实际项目中需要考虑光照等的影响进行微调优化</c>
+<c>*这里的二值化是进行一个blob车牌定位</c>
+<l>threshold (Saturation, Regions, 182, 255)</l>
+<c>*注意我这里的开运算，此算子是根据具体情况从大脑闪现，也就是哲学里的我本没有招数，我的招数取决对方出招，因为看到有小噪声点，所以马上联想开运算</c>
+<c>*注意去掉像素马上想到开运算和腐蚀，增加像素用闭运算和膨胀。具体区别可以看我发的链接，里面我阐述了。</c>
+<l>opening_rectangle1 (Regions, RegionOpening, 6,6)</l>
+<c>*接下来的思路是需要获得整个这个区域，所以联想到shape_trans,因为是有角度的矩形所以用rectangle2</c>
+<l>shape_trans (RegionOpening, RegionTrans, 'rectangle2')</l>
+<c>*接下来求这个区域的角度和中心点，便于仿射变换转正</c>
+<l>orientation_region (RegionTrans, Phi)</l>
+<l>area_center (RegionTrans, Area, Row, Column)</l>
+<c>*开始求解仿射变换之旋转矩阵,这里要注意是转到180度还是0度，需要注意你求解角度时的极轴方向，具体可以看链接视频</c>
+<l>vector_angle_to_rigid (Row, Column, Phi, Row, Column, rad(180), HomMat2D)</l>
+<c>*将图像和区域都做这个旋转变换，然后抠图，再进行图像分割</c>
+<l>affine_trans_image (Image, ImageAffinTrans, HomMat2D, 'constant', 'false')</l>
+<l>affine_trans_region (RegionTrans, RegionAffineTrans, HomMat2D, 'nearest_neighbor')</l>
+<l>reduce_domain (ImageAffinTrans, RegionAffineTrans, ImageReduced)</l>
+<c></c>
+<c>*3下面就要进行图像分割了，也就是字符分割，分割出感兴趣地带，上面都是在做定位和几何变换而已，注意这个思路套路</c>
+<l>rgb1_to_gray (ImageReduced, GrayImage)</l>
+<c>*注意这里翻转图像灰度值是因为我们后面用的是halcon自带的字库，而halcon自带字库是白底黑字的</c>
+<l>invert_image (GrayImage, ImageInvert)</l>
+<l>threshold (GrayImage, Regions1, 92, 135)</l>
+<c>*这里三兄弟开始联合，用法是随机应变，就像水一样，本身无形，遇到容器就是容器形状</c>
+<l>opening_rectangle1 (Regions1, RegionOpening1, 3,3)</l>
+<c>*注意一定要砍成不同连通域才可以用特征选择，这是halcon内部机制，是规定，并非客观。也就是必须调用connection</c>
+<l>connection (RegionOpening1, ConnectedRegions)</l>
+<l>select_shape (ConnectedRegions, SelectedRegions, 'area', 'and', 546.74, 2000)</l>
+<c>*字符就被提取了，注意这里我暂时不是识别汉字，要识别汉字也是可以的，可以看视频链接</c>
+<c>*进行字符排序方便识别后观察，因为人都是习惯从左到右</c>
+<l>sort_region (SelectedRegions, SortedRegions, 'first_point', 'true', 'column')</l>
+<c>*4识别显示，注意这里识别用的halcon自带字库，同时带NoRej的表示非拒绝，识别要求不严格</c>
+<l>read_ocr_class_mlp ('Industrial_0-9A-Z_NoRej.omc', OCRHandle)</l>
+<c>*注意ocr套路，一般可以多个区域一起识别，也可以单个区域识别，注意上面的工作就是为了得到这个区域</c>
+<l>do_ocr_multi_class_mlp (SortedRegions, ImageInvert, OCRHandle, Class, Confidence)</l>
+<l>dev_display (Image)</l>
+<l>disp_message (WindowHandle,Class, 'image', 371, 264, 'red', 'false')</l>
+<c></c>
+</body>
+<docu id="main">
+<parameters/>
+</docu>
+</procedure>
+</hdevelop>

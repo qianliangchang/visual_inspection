@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<hdevelop file_version="1.2" halcon_version="18.05.0.1">
+<procedure name="main">
+<interface/>
+<body>
+<c>*基于相关性的模板匹配（在线性变换的光照下）</c>
+<c>*导入图片</c>
+<l>dev_open_window (0, 0, 512, 512, 'black', WindowHandle)</l>
+<l>list_files ('H:/projects/visual inspection/images/image1', ['files','follow_links'], ImageFiles)</l>
+<l>tuple_regexp_select (ImageFiles, ['\\.(tif|tiff|gif|bmp|jpg|jpeg|jp2|png|pcx|pgm|ppm|pbm|xwd|ima|hobj)$','ignore_case'], ImageFiles)</l>
+<c> </c>
+<c>*【1】创建模板</c>
+<l>read_image (Image, 'H:/projects/visual inspection/images/image1/0.bmp')</l>
+<l>draw_rectangle1 (WindowHandle, Row11, Column11, Row2, Column2)</l>
+<l>gen_rectangle1 (Rectangle, Row11, Column11, Row2, Column2)</l>
+<l>*gen_circle (ROI_0, 246.5, 331.5, 173.367)</l>
+<l>area_center (Rectangle, Area, Row, Column)</l>
+<l>reduce_domain (Image, Rectangle, ImageReduced)</l>
+<l>create_ncc_model (ImageReduced, 'auto', -0.39, 0.79, 'auto', 'use_polarity', ModelID)</l>
+<c> </c>
+<l>rows:=[]</l>
+<l>columns:=[]</l>
+<l>dev_set_draw ('margin')</l>
+<c>  </c>
+<c> </c>
+<c>*【2】寻找模板。特别注意第五个参数是匹配的最低值，若匹配值低于该值则表明该图像中没有该模板</c>
+<l>read_image (Image1, 'H:/projects/visual inspection/images/image1/0.bmp')</l>
+<l>find_ncc_model (Image, ModelID, -0.39, 0.78, 0.4, 0, 0.5, 'true', 0, Row1, Column1, Angle, Score)</l>
+<l>for I := 0 to |Score| - 1 by 1</l>
+<l>    vector_angle_to_rigid (Row, Column, 0, Row1[I], Column1[I], 0, HomMat2D)</l>
+<l>    rows:=[rows,Row1]</l>
+<l>    columns:=[columns,Column1]</l>
+<l>    affine_trans_region (Rectangle, RegionAffineTrans, HomMat2D, 'nearest_neighbor')</l>
+<l>    dev_display (Image)</l>
+<l>    dev_display (RegionAffineTrans)</l>
+<l>    disp_continue_message (WindowHandle, 'black', 'true')</l>
+<l>    stop()    </l>
+<l>endfor</l>
+<l>biaozhuncha0:=deviation(rows)</l>
+<l>biaozhuncha1:=deviation(columns)</l>
+<l>clear_ncc_model (ModelID)</l>
+</body>
+<docu id="main">
+<parameters/>
+</docu>
+</procedure>
+</hdevelop>

@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<hdevelop file_version="1.2" halcon_version="18.05.0.1">
+<procedure name="main">
+<interface/>
+<body>
+<l>dev_open_window (0, 0, 512, 512, 'black', WindowHandle)</l>
+<l>read_image (Image, 'H:/projects/visual inspection/demo1/timg.jpg')</l>
+<l>invert_image (Image, ImageInvert)</l>
+<c> </c>
+<c>*拆分3通道并转换为hsv空间</c>
+<l>decompose3 (Image, Red, Green, Blue)</l>
+<l>trans_from_rgb (Red, Green, Blue, Hue, Saturation, Intensity, 'hsv')</l>
+<c> </c>
+<c>*利用饱和度图像进行二值化和特征选择</c>
+<l>threshold (Saturation, Regions, 15, 50)</l>
+<l>connection (Regions, ConnectedRegions)</l>
+<l>select_shape (ConnectedRegions, SelectedRegions, ['area','row'], 'and', [80,135.73], [195.9,168.38])</l>
+<c> </c>
+<c>*联合连通域形成一个区域，并用一个带方向的矩形进行形状转换</c>
+<l>union1 (SelectedRegions, RegionUnion)</l>
+<l>shape_trans (RegionUnion, RegionTrans, 'rectangle2')</l>
+<c> </c>
+<c>*做仿射变化（校正）</c>
+<l>orientation_region (RegionTrans, Phi)</l>
+<l>area_center (RegionTrans, Area, Row, Column)</l>
+<l>vector_angle_to_rigid (Row, Column, Phi, Row, Column,0, HomMat2D)</l>
+<l>affine_trans_image (Image, ImageAffinTrans, HomMat2D, 'constant', 'false')</l>
+<l>affine_trans_region (RegionTrans, RegionAffineTrans, HomMat2D, 'nearest_neighbor')</l>
+<c> </c>
+<c>*用校正的区域去校正的原图中抠图，扣出车牌区域</c>
+<l>reduce_domain (ImageAffinTrans, RegionAffineTrans, ImageReduced)</l>
+<l>rgb1_to_gray (ImageReduced, GrayImage)</l>
+<l>threshold (GrayImage, Regions1, 77, 252)</l>
+<l>connection (Regions1, ConnectedRegions1)</l>
+<l>select_shape (ConnectedRegions1, SelectedRegions1, 'area', 'and', 63.76, 500)</l>
+<c> </c>
+<l>sort_region (SelectedRegions1, SortedRegions, 'character', 'true', 'column')</l>
+<c> </c>
+<c>*读取模型并识别显示</c>
+<l>read_ocr_class_mlp ('Industrial_0-9A-Z_NoRej.omc', OCRHandle)</l>
+<l>do_ocr_multi_class_mlp (SortedRegions, ImageInvert, OCRHandle, Class, Confidence)</l>
+<l>dev_display (Image)</l>
+<l>disp_message (WindowHandle, Class, 'window', 0, 0, 'black', 'true')</l>
+</body>
+<docu id="main">
+<parameters/>
+</docu>
+</procedure>
+</hdevelop>

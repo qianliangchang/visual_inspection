@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<hdevelop file_version="1.2" halcon_version="18.05.0.1">
+<procedure name="main">
+<interface/>
+<body>
+<c>* 通过Blob分析提取出图片中的硬币，来熟悉halcon的基本操作</c>
+<c>* 读取图片 halcon读取图像有三种方式：1)、文件-&gt;读取图像；2)、通过助手；3)、代码</c>
+<c></c>
+<c>* 先关闭以前的窗口</c>
+<l>dev_clear_window()</l>
+<c>* 打开一个窗口（默认大小）</c>
+<l>dev_open_window (0, 0, 512, 512, 'black', WindowHandle)</l>
+<c>* 加载图像</c>
+<l>read_image (Image, 'H:/projects/visual inspection/TEST/test01/20180823160227923.jpg')</l>
+<c>* RGB 转灰度图像</c>
+<l>rgb1_to_gray(Image,grayImage)</l>
+<c>* 二值化</c>
+<l>threshold(grayImage,Region, 60, 255)</l>
+<c>* 二值化后为一个区域，一定要连接连通域，将区域打断（区域是没有像素值的，halcon中按住ctrl然后把鼠标指到图像中某一位置会显示其坐标和像素值）</c>
+<c>* 连接连通域</c>
+<l>connection (Region, ConnectedRegions)</l>
+<c>* 特征选择</c>
+<l>*select_shape (ConnectedRegions, SelectedRegions, 'area', 'and', 35619.1, 200000)</l>
+<l>select_shape (ConnectedRegions, SelectedRegions, 'area', 'and', 38348.6, 121651)</l>
+<c>* 区域填充</c>
+<l>fill_up (SelectedRegions, RegionFillUp)</l>
+<c>* 显示面积及中心坐标</c>
+<l>area_center (RegionFillUp, Area, Row, Column)</l>
+<l>disp_message (WindowHandle, '面积:'+Area+'坐标:'+Row+','+Column, 'window', 0, 0, 'black', 'true')</l>
+<l>stop()</l>
+</body>
+<docu id="main">
+<parameters/>
+</docu>
+</procedure>
+</hdevelop>

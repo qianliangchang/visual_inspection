@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<hdevelop file_version="1.2" halcon_version="18.05.0.1">
+<procedure name="main">
+<interface/>
+<body>
+<l>dev_close_window () </l>
+<l>dev_update_off () </l>
+<l>dev_set_draw ('margin') </l>
+<l>read_image (Image, 'C:/Users/Administrator/Desktop/10_81_90677e8302bd1fa.gif') </l>
+<l>rgb1_to_gray (Image, Image) </l>
+<l>invert_image (Image, ImageInvert) </l>
+<l>dev_open_window_fit_image (Image, 0, 0, -1, -1, WindowHandle) </l>
+<l>dev_display (Image) </l>
+<c>* </c>
+<l>Rows := [] </l>
+<l>Cols := [] </l>
+<l>Cs := [] </l>
+<c>* </c>
+<l>for ocr_pos := 1 to 3 by 1 </l>
+<l>    if (ocr_pos == 1) </l>
+<l>        gen_rectangle1 (Rectangle, 48.625, 142, 98.375, 267.75) </l>
+<l>        partition_rectangle (Rectangle, Partitioned, 31, 60) </l>
+<l>    elseif (ocr_pos == 2) </l>
+<l>        gen_rectangle1 (Rectangle, 50.9532, 300.394, 104.351, 425.595) </l>
+<l>        partition_rectangle (Rectangle, Partitioned, 31, 60) </l>
+<l>    else </l>
+<l>        gen_rectangle2 (Rectangle, 361.5, 346.5, rad(-0.387128), 148.003, 26.9057) </l>
+<l>        partition_rectangle (Rectangle, Partitioned, 37.5, 60) </l>
+<l>    endif </l>
+<c>    * </c>
+<l>    count_obj (Partitioned, Number) </l>
+<l>    for j := 1 to Number by 1 </l>
+<l>        dev_clear_window () </l>
+<l>        dev_display (Image) </l>
+<l>        select_obj (Partitioned, ObjectSelected, j) </l>
+<l>        reduce_domain (Image, ObjectSelected, ImageReduced) </l>
+<c>        * </c>
+<l>        if (ocr_pos == 1 or ocr_pos == 2) </l>
+<l>            gray_range_rect (ImageReduced, ImageResult, 7, 7) </l>
+<l>            threshold (ImageResult, RegionDynThresh, 150, 255) </l>
+<l>        else </l>
+<l>            mean_image (ImageReduced, ImageMean, 34, 20) </l>
+<l>            dyn_threshold (ImageReduced, ImageMean, RegionDynThresh, 5, 'light') </l>
+<l>        endif </l>
+<l>        dev_display (RegionDynThresh) </l>
+<c>        * </c>
+<l>        connection (RegionDynThresh, ConnectedRegions) </l>
+<l>        opening_circle (ConnectedRegions, RegionOpening, 2.5) </l>
+<l>        closing_circle (RegionOpening, SelectedRegions, 5.5) </l>
+<l>        select_shape_std (RegionOpening, SelectedRegions, 'max_area', 70) </l>
+<c>        * </c>
+<l>        dev_clear_window () </l>
+<l>        dev_display (Image) </l>
+<l>        dev_display (SelectedRegions) </l>
+<c>        * </c>
+<l>        read_ocr_class_mlp ('Industrial_0-9.omc', OCRHandle1) </l>
+<l>        do_ocr_multi_class_mlp (SelectedRegions, ImageInvert, OCRHandle1, Class, Confidence) </l>
+<l>        area_center (SelectedRegions, Area, Row, Column) </l>
+<l>        Rows := [Rows,Row] </l>
+<l>        Cols := [Cols,Column] </l>
+<l>        Cs := [Cs,Class] </l>
+<c>        * </c>
+<l>        dev_display (Image) </l>
+<l>        dev_set_color ('red') </l>
+<l>        for i := 0 to |Class|-1 by 1 </l>
+<l>            set_tposition (WindowHandle, Row, Column) </l>
+<l>            write_string (WindowHandle, Class) </l>
+<l>            wait_seconds (0.5) </l>
+<l>        endfor </l>
+<l>    endfor </l>
+<c>    * </c>
+<l>endfor </l>
+<c>* show all ocr </c>
+<l>dev_display (Image) </l>
+<l>dev_set_color ('red') </l>
+<l>dev_set_line_width (5) </l>
+<l>for i := 0 to |Cs|-1 by 1 </l>
+<l>    set_tposition (WindowHandle, Rows+22, Cols) </l>
+<l>    write_string (WindowHandle, Cs) </l>
+<l>endfor </l>
+<c>*</c>
+</body>
+<docu id="main">
+<parameters/>
+</docu>
+</procedure>
+</hdevelop>

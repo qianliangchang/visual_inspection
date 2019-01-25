@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<hdevelop file_version="1.2" halcon_version="18.05.0.1">
+<procedure name="main">
+<interface/>
+<body>
+<l>dev_close_window()</l>
+<l>dev_open_window (0, 0, 512, 512, 'black', WindowHandle)</l>
+<l>read_image (Image, 'H:/projects/visual inspection/TEST/test02/20180824122013185.png')</l>
+<l>disp_continue_message (WindowHandle, 'black', 'true')</l>
+<c></c>
+<c>*形状转换，最小外接矩形并填充</c>
+<l>threshold (Image, Regions, 91, 242)</l>
+<l>shape_trans (Regions, RegionTrans, 'rectangle2')</l>
+<c></c>
+<c>*抠图</c>
+<l>reduce_domain (Image, RegionTrans, ImageReduced)</l>
+<l>threshold (ImageReduced, Regions1, 0, 50)</l>
+<c> </c>
+<c>*区域填充，fill_up是将所有的区域填充，fill_up_shape是将面积在1到100的填充</c>
+<l>fill_up_shape (Regions1, RegionFillUp, 'area', 1, 100)</l>
+<l>disp_continue_message (WindowHandle, 'black', 'true')</l>
+<l>stop()</l>
+<c> </c>
+<c>*用一个圆形的结构元素做开运算</c>
+<l>opening_circle (RegionFillUp, RegionOpening, 13.5)</l>
+<c> </c>
+<c>*打断区域做特征选择（这里用圆度特征）</c>
+<l>connection (RegionOpening, ConnectedRegions)</l>
+<l>select_shape (ConnectedRegions, SelectedRegions, 'roundness', 'and', 0.88349, 1)</l>
+<c> </c>
+<c>*排序</c>
+<l>sort_region (SelectedRegions, SortedRegions, 'first_point', 'true', 'column')</l>
+<c> </c>
+<c>*计算连通域的个数</c>
+<l>count_obj (SortedRegions, Number)</l>
+<l>disp_continue_message (WindowHandle, 'black', 'true')</l>
+<l>stop()</l>
+<c> </c>
+<c>*计算最小外接圆并画出</c>
+<l>dev_display (Image)</l>
+<l>smallest_circle (SortedRegions, Row, Column, Radius)</l>
+<l>disp_circle (WindowHandle, Row, Column, Radius)</l>
+<l>Diameter:= 2*Radius</l>
+<c> </c>
+<c>*显示直径</c>
+<l>for i:=0 to |Radius|-1 by 1</l>
+<l>   if(fmod(i,2)==1)</l>
+<l>       disp_message (WindowHandle, 'D: ' + Diameter[i], 'image', Row[i]-Diameter[i] , max([Column[i] - 60,0]), 'white', 'false')</l>
+<l>   else</l>
+<l>       disp_message (WindowHandle, 'D: ' + Diameter[i], 'image', Row[i]+Diameter[i], max([Column[i] - 60,0]), 'white', 'false')</l>
+<l>   endif   </l>
+<l>endfor</l>
+<c></c>
+</body>
+<docu id="main">
+<parameters/>
+</docu>
+</procedure>
+</hdevelop>

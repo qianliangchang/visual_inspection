@@ -1,0 +1,238 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<hdevelop file_version="1.2" halcon_version="18.05.0.1">
+<procedure name="main">
+<interface/>
+<body>
+<l>dev_close_window()</l>
+<l>read_image(Image,'H:/projects/visual inspection/优博创光模块检测/优博创光模块检测/0.bmp')</l>
+<l>dev_open_window(0, 0, 620, 512, 'black', WindowHandle)</l>
+<l>get_image_size(Image, Width, Height)</l>
+<l>dev_display(Image)</l>
+<c></c>
+<c>*脏污检测</c>
+<c>*gen model</c>
+<l>* draw_rectangle1(WindowHandle, Row1, Column1, Row2, Column2)</l>
+<l>gen_rectangle1(RectangleModel, 847, 1764, 1033, 1863)</l>
+<l>reduce_domain(Image, RectangleModel, ImageReduced)</l>
+<l>inspect_shape_model(ImageReduced, ModelImages, ModelRegions, 1, 30)</l>
+<l>shape_trans(ModelRegions, RegionTrans, 'convex')</l>
+<l>dilation_circle(RegionTrans, RegionDilation, 3.5)</l>
+<l>orientation_region(RegionDilation, AngleRef)</l>
+<l>area_center(RegionDilation, AreaRef, RowRef, ColumnRef)//模板匹配，仿射变换使用-形状不一样，匹配不准</l>
+<l>gen_contours_skeleton_xld(ModelRegions, Contours, 1, 'filter')</l>
+<l>create_shape_model(ModelImages, 'auto', -0.39, 0.79, 'auto', 'auto', 'use_polarity', 20, 15, ShapeModelID)//shape model用于发现模板</l>
+<l>* get_shape_model_params(ShapeModelID, NumLevels, AngleStart, AngleExtent, AngleStep, ScaleMin, ScaleMax, ScaleStep, Metric, MinContrast)</l>
+<l>create_variation_model(Width, Height, 'byte', 'standard', VariationModelID)//variation model用于模板比对</l>
+<c>*train model 这里设定需要检测的坐标信息</c>
+<l>gen_rectangle1(Rectangle0, 842, 1128, 1035, 1226)</l>
+<l>gen_rectangle1(Rectangle1, 850, 1444, 1028, 1549)</l>
+<l>gen_rectangle1(Rectangle2, 850, 2082, 1035, 2180)</l>
+<l>gen_rectangle1(Rectangle3, 857, 2402, 1045, 2496)</l>
+<l>reduce_domain(Image, Rectangle0, ImageReduced0)</l>
+<l>reduce_domain(Image, Rectangle1, ImageReduced1)</l>
+<l>reduce_domain(Image, Rectangle2, ImageReduced2)</l>
+<l>reduce_domain(Image, Rectangle3, ImageReduced3)</l>
+<l>inspect_shape_model(ImageReduced0, ModelImages00, ModelRegions00, 1, 30)</l>
+<l>inspect_shape_model(ImageReduced1, ModelImages11, ModelRegions11, 1, 30)</l>
+<l>inspect_shape_model(ImageReduced2, ModelImages22, ModelRegions22, 1, 30)</l>
+<l>inspect_shape_model(ImageReduced3, ModelImages33, ModelRegions33, 1, 30)</l>
+<l>shape_trans(ModelRegions00, RegionTrans00, 'convex')</l>
+<l>shape_trans(ModelRegions11, RegionTrans11, 'convex')</l>
+<l>shape_trans(ModelRegions22, RegionTrans22, 'convex')</l>
+<l>shape_trans(ModelRegions33, RegionTrans33, 'convex')</l>
+<l>dilation_circle(RegionTrans00, RegionTrans00, 3.5)</l>
+<l>dilation_circle(RegionTrans11, RegionTrans11, 3.5)</l>
+<l>dilation_circle(RegionTrans22, RegionTrans22, 3.5)</l>
+<l>dilation_circle(RegionTrans33, RegionTrans33, 3.5)</l>
+<l>area_center(RegionTrans00, Area00, Row00, Column00)</l>
+<l>area_center(RegionTrans11, Area11, Row11, Column11)</l>
+<l>area_center(RegionTrans22, Area22, Row22, Column22)</l>
+<l>area_center(RegionTrans33, Area33, Row33, Column33)</l>
+<l>orientation_region(RegionTrans00, Angle00)</l>
+<l>orientation_region(RegionTrans11, Angle11)</l>
+<l>orientation_region(RegionTrans22, Angle22)</l>
+<l>orientation_region(RegionTrans33, Angle33)</l>
+<l>* find_shape_model(ImageReduced0, ShapeModelID, -0.39, 0.79, 0.5, 1, 0.5, 'least_squares', 0, 0.9, Row0, Column0, Angle0, Score0)</l>
+<l>* find_shape_model(ImageReduced1, ShapeModelID, -0.39, 0.79, 0.5, 1, 0.5, 'least_squares', 0, 0.9, Row1, Column1, Angle1, Score1)</l>
+<l>* find_shape_model(ImageReduced2, ShapeModelID, -0.39, 0.79, 0.5, 1, 0.5, 'least_squares', 0, 0.9, Row2, Column2, Angle2, Score2)</l>
+<l>* find_shape_model(ImageReduced3, ShapeModelID, -0.39, 0.79, 0.5, 1, 0.5, 'least_squares', 0, 0.9, Row3, Column3, Angle3, Score3)</l>
+<l>vector_angle_to_rigid(Row00,Column00,Angle00,RowRef,ColumnRef,AngleRef,HomMat2D0)</l>
+<l>vector_angle_to_rigid(Row11,Column11,Angle11,RowRef,ColumnRef,AngleRef,HomMat2D1)</l>
+<l>vector_angle_to_rigid(Row22,Column22,Angle22,RowRef,ColumnRef,AngleRef,HomMat2D2)</l>
+<l>vector_angle_to_rigid(Row33,Column33,Angle33,RowRef,ColumnRef,AngleRef,HomMat2D3)</l>
+<c></c>
+<l>affine_trans_image(ImageReduced0, ImageAffineTrans0, HomMat2D0, 'constant', 'false')</l>
+<l>affine_trans_image(ImageReduced1, ImageAffineTrans1, HomMat2D1, 'constant', 'false')</l>
+<l>affine_trans_image(ImageReduced2, ImageAffineTrans2, HomMat2D2, 'constant', 'false')</l>
+<l>affine_trans_image(ImageReduced3, ImageAffineTrans3, HomMat2D3, 'constant', 'false')</l>
+<c>*参数检查</c>
+<l>reduce_domain(ImageAffineTrans0, RectangleModel, ImageReduced00)</l>
+<l>inspect_shape_model(ImageReduced00, ModelImages00, ModelRegions00, 1, 30)</l>
+<l>dev_display(ModelRegions)</l>
+<c></c>
+<l>reduce_domain(ImageAffineTrans1, RectangleModel, ImageReduced11)</l>
+<l>inspect_shape_model(ImageReduced11, ModelImages11, ModelRegions11, 1, 30)</l>
+<l>dev_display(ModelRegions)</l>
+<c></c>
+<l>reduce_domain(ImageAffineTrans2, RectangleModel, ImageReduced22)</l>
+<l>inspect_shape_model(ImageReduced22, ModelImages22, ModelRegions22, 1, 30)</l>
+<l>dev_display(ModelRegions)</l>
+<c></c>
+<l>reduce_domain(ImageAffineTrans3, RectangleModel, ImageReduced33)</l>
+<l>inspect_shape_model(ImageReduced33, ModelImages33, ModelRegions33, 1, 30)</l>
+<l>dev_display(ModelRegions)</l>
+<c>*参数检查</c>
+<l>train_variation_model(ImageReduced00, VariationModelID)</l>
+<l>train_variation_model(ImageReduced11, VariationModelID)</l>
+<l>train_variation_model(ImageReduced22, VariationModelID)</l>
+<l>train_variation_model(ImageReduced33, VariationModelID)</l>
+<c>*生成模板</c>
+<l>get_variation_model(ImageModel, VarImage, VariationModelID)</l>
+<l>prepare_variation_model(VariationModelID, 40, 2)</l>
+<c>*find &amp;compare model </c>
+<l>gen_rectangle1(Rec1, 835, 500, 1033, 607)</l>
+<l>gen_rectangle1(Rec2, 844, 821, 1042, 917)</l>
+<l>gen_rectangle1(Rec3, 857, 1129, 1055, 1266)</l>
+<l>gen_rectangle1(Rec4, 855, 1447, 1054, 1544)</l>
+<l>gen_rectangle1(Rec5, 847, 1768, 1045, 1865)</l>
+<l>gen_rectangle1(Rec6, 851, 2085, 1049, 2182)</l>
+<l>gen_rectangle1(Rec7, 853, 2411, 1051, 2499)</l>
+<l>gen_rectangle1(Rec8, 854, 2722, 1053, 2812)</l>
+<l>gen_rectangle1(Rec9, 853, 3032, 1051, 3122)</l>
+<l>gen_rectangle1(Rec10, 851, 3344, 1050, 3434)</l>
+<l>gen_rectangle1(Rec11, 2045, 502, 2244, 592)</l>
+<l>gen_rectangle1(Rec12, 2045, 818, 2244, 908)</l>
+<l>gen_rectangle1(Rec13, 2053, 1126, 2251, 1217)</l>
+<l>gen_rectangle1(Rec14, 2057, 1450, 2256, 1540)</l>
+<l>gen_rectangle1(Rec15, 2053, 1764, 2251, 1855)</l>
+<l>gen_rectangle1(Rec16, 2047, 2079, 2245, 2169)</l>
+<l>gen_rectangle1(Rec17, 2049, 2393, 2247, 2484)</l>
+<l>gen_rectangle1(Rec18, 2051, 2710, 2249, 2800)</l>
+<l>gen_rectangle1(Rec19, 2057, 3013, 2255, 3104)</l>
+<l>gen_rectangle1(Rec20, 2057, 3331, 2255, 3422)</l>
+<c></c>
+<l>dev_display(Image)</l>
+<l>reduce_domain(Image, Rec8, Image7)</l>
+<l>inspect_shape_model(Image7, Modelimg7, ModelRegion7, 1, 30)</l>
+<l>shape_trans(ModelRegion7, ModelRegion7, 'convex')</l>
+<l>dilation_circle(ModelRegion7, RegionDilation7, 3.5)</l>
+<l>area_center(RegionDilation7, Area7, Row7, Column7)</l>
+<l>orientation_region(RegionDilation7, Angle7)</l>
+<l>vector_angle_to_rigid(Row7, Column7, Angle7, RowRef, ColumnRef, AngleRef, HomMat2D)</l>
+<l>affine_trans_image(Image, ImageAffineTrans, HomMat2D, 'constant', 'false')</l>
+<l>reduce_domain(ImageAffineTrans, RegionDilation, ImageCompare)</l>
+<l>compare_variation_model(ImageCompare, Region, VariationModelID)</l>
+<l>connection(Region, ConnectedRegions)</l>
+<l>select_shape(ConnectedRegions, SelectedRegions, 'area', 'and', 150, 99999)</l>
+<l>dev_clear_window()</l>
+<l>dev_display(ImageAffineTrans)</l>
+<l>dev_set_color('green')</l>
+<l>dev_display(ModelRegions)</l>
+<l>dev_set_color('red')</l>
+<l>dev_display(SelectedRegions)</l>
+<l>stop()</l>
+<c></c>
+<l>draw_rectangle1(WindowHandle, Row1, Column1, Row2, Column2)</l>
+<l>gen_rectangle1(Rectangle, Row1, Column1, Row2, Column2)</l>
+<l>reduce_domain(ImageAffineTrans, Rectangle, ImageReduced4)</l>
+<l>dev_set_color('green')</l>
+<l>binary_threshold(ImageReduced4, Region1, 'max_separability', 'dark', UsedThreshold)</l>
+<c></c>
+<l>draw_rectangle1(WindowHandle, Row12, Column12, Row21, Column21)</l>
+<l>gen_rectangle1(Rectangle4, Row12, Column12, Row21, Column21)</l>
+<l>reduce_domain(ImageAffineTrans, Rectangle4, ImageReduced5)</l>
+<l>dev_set_color('red')</l>
+<l>binary_threshold(ImageReduced5, Region2, 'max_separability', 'dark', UsedThreshold1)</l>
+<c></c>
+<c>*倾斜检测</c>
+<l>dev_close_window()</l>
+<l>read_image(Image,'E:/项目/视觉需求/优博创光模块检测/2.bmp')</l>
+<l>dev_open_window(0, 0, 620, 512, 'black', WindowHandle)</l>
+<l>get_image_size(Image, Width, Height)</l>
+<l>dev_display(Image)</l>
+<c></c>
+<l>draw_rectangle1(WindowHandle, Row13, Column13, Row23, Column23)</l>
+<l>gen_rectangle1(Rectangle5, Row13, Column13, Row23, Column23)</l>
+<l>reduce_domain(Image, Rectangle5, ImageReduced6)</l>
+<c></c>
+<l>threshold(ImageReduced6, Region3, 120, 210)</l>
+<l>connection(Region3, ConnectedRegions1)</l>
+<l>select_shape(ConnectedRegions1, SelectedRegions1, 'area', 'and', 2000, 99999)</l>
+<l>fill_up(SelectedRegions1, RegionFillUp)</l>
+<l>opening_circle(RegionFillUp, RegionOpening, 3.5)</l>
+<l>shape_trans(RegionOpening, RegionTrans1, 'rectangle2')</l>
+<l>difference(RegionTrans1,RegionOpening, RegionDifference)</l>
+<l>opening_circle(RegionDifference, RegionOpening1, 2.5)</l>
+<l>select_obj(RegionOpening, ObjectSelected, 1)</l>
+<l>select_obj(RegionOpening, ObjectSelected1, 2)</l>
+<l>orientation_region(RegionOpening1, Phi)</l>
+<l>dev_clear_window()</l>
+<l>dev_display(Image)</l>
+<l>dev_set_draw('margin')</l>
+<l>dev_set_color('green')</l>
+<l>dev_display(RegionOpening)</l>
+<l>dev_set_color('red')</l>
+<l>dev_display(RegionOpening1)</l>
+<c></c>
+<l>stop()</l>
+<c></c>
+<c>*裂纹检测</c>
+<l>dev_close_window()</l>
+<l>read_image(Image,'E:/项目/视觉需求/优博创光模块检测/3.bmp')</l>
+<l>dev_open_window(0, 0, 620, 512, 'black', WindowHandle)</l>
+<l>get_image_size(Image, Width, Height)</l>
+<l>dev_display(Image)</l>
+<c></c>
+<c>*gen model</c>
+<l>* draw_rectangle1(WindowHandle, Row1, Column1, Row2, Column2)</l>
+<l>gen_rectangle1(RectangleModel, 1590, 2664, 1856, 2822)</l>
+<l>reduce_domain(Image, RectangleModel, ImageReduced)</l>
+<l>inspect_shape_model(ImageReduced, ModelImages, ModelRegions, 1, 30)</l>
+<l>shape_trans(ModelRegions, RegionTrans, 'convex')</l>
+<l>dilation_circle(RegionTrans, RegionDilation, 3.5)</l>
+<l>orientation_region(RegionDilation, AngleRef)</l>
+<l>area_center(RegionDilation, AreaRef, RowRef, ColumnRef)//模板匹配，仿射变换使用-形状不一样，匹配不准</l>
+<l>gen_contours_skeleton_xld(ModelRegions, Contours, 1, 'filter')</l>
+<l>create_shape_model(ModelImages, 'auto', -0.39, 0.79, 'auto', 'auto', 'use_polarity', 20, 15, ShapeModelID)//shape model用于发现模板</l>
+<l>create_variation_model(Width, Height, 'byte', 'standard', VariationModelID)</l>
+<c>*生成模板</c>
+<l>train_variation_model(ModelImages, VariationModelID)</l>
+<l>get_variation_model(ImageModel, VarImage, VariationModelID)</l>
+<l>prepare_variation_model(VariationModelID, 40, 2)</l>
+<c>*find &amp;compare model </c>
+<l>dev_display(Image)</l>
+<l>* draw_rectangle1(WindowHandle, Row14, Column14, Row24, Column24)</l>
+<l>gen_rectangle1(Rec1, 1598, 2119, 1888, 2276)</l>
+<l>reduce_domain(Image, Rec1, Image1)</l>
+<l>inspect_shape_model(Image1, Modelimg1, ModelRegion1, 1, 30)</l>
+<l>shape_trans(ModelRegion1, RegionTrans1, 'convex')</l>
+<l>dilation_circle(RegionTrans1, RegionDilation1, 3.5)</l>
+<l>orientation_region(RegionDilation1, Angle1)</l>
+<l>area_center(RegionDilation1, Area1, Row1, Column1)</l>
+<l>find_shape_model(Modelimg1, ShapeModelID, -0.39, 0.79, 0.5, 1, 0.5, 'least_squares', 0, 0.9, Row, Column, Angle, Score)</l>
+<l>if(Score&lt;0.9)</l>
+<l>    vector_angle_to_rigid(Row1, Column1, Angle1,  RowRef, ColumnRef, AngleRef,HomMat2D)</l>
+<l>else</l>
+<l>    shape_trans(ModelRegion7, ModelRegion7, 'convex')</l>
+<l>    dilation_circle(ModelRegion7, RegionDilation7, 3.5)</l>
+<l>    area_center(RegionDilation7, Area7, Row7, Column7)</l>
+<l>    orientation_region(RegionDilation7, Angle7)</l>
+<l>    vector_angle_to_rigid(Row7, Column7, Angle7, RowRef, ColumnRef, AngleRef, HomMat2D)</l>
+<l>endif</l>
+<l>affine_trans_image(Image, ImageAffineTrans, HomMat2D, 'constant', 'false')</l>
+<l>reduce_domain(ImageAffineTrans, RegionDilation, ImageCompare)</l>
+<l>compare_variation_model(ImageCompare, Region, VariationModelID)</l>
+<l>connection(Region, ConnectedRegions)</l>
+<l>select_shape(ConnectedRegions, SelectedRegions, 'area', 'and', 150, 99999)</l>
+<l>dev_clear_window()</l>
+<l>dev_display(ImageAffineTrans)</l>
+<l>dev_set_color('green')</l>
+<l>dev_display(ModelRegions)</l>
+<l>dev_set_color('red')</l>
+<l>dev_display(SelectedRegions)</l>
+</body>
+<docu id="main">
+<parameters/>
+</docu>
+</procedure>
+</hdevelop>

@@ -1,0 +1,76 @@
+dev_close_window () 
+dev_update_off () 
+dev_set_draw ('margin') 
+read_image (Image, 'C:/Users/Administrator/Desktop/10_81_90677e8302bd1fa.gif') 
+rgb1_to_gray (Image, Image) 
+invert_image (Image, ImageInvert) 
+dev_open_window_fit_image (Image, 0, 0, -1, -1, WindowHandle) 
+dev_display (Image) 
+* 
+Rows := [] 
+Cols := [] 
+Cs := [] 
+* 
+for ocr_pos := 1 to 3 by 1 
+    if (ocr_pos == 1) 
+        gen_rectangle1 (Rectangle, 48.625, 142, 98.375, 267.75) 
+        partition_rectangle (Rectangle, Partitioned, 31, 60) 
+    elseif (ocr_pos == 2) 
+        gen_rectangle1 (Rectangle, 50.9532, 300.394, 104.351, 425.595) 
+        partition_rectangle (Rectangle, Partitioned, 31, 60) 
+    else 
+        gen_rectangle2 (Rectangle, 361.5, 346.5, rad(-0.387128), 148.003, 26.9057) 
+        partition_rectangle (Rectangle, Partitioned, 37.5, 60) 
+    endif 
+    * 
+    count_obj (Partitioned, Number) 
+    for j := 1 to Number by 1 
+        dev_clear_window () 
+        dev_display (Image) 
+        select_obj (Partitioned, ObjectSelected, j) 
+        reduce_domain (Image, ObjectSelected, ImageReduced) 
+        * 
+        if (ocr_pos == 1 or ocr_pos == 2) 
+            gray_range_rect (ImageReduced, ImageResult, 7, 7) 
+            threshold (ImageResult, RegionDynThresh, 150, 255) 
+        else 
+            mean_image (ImageReduced, ImageMean, 34, 20) 
+            dyn_threshold (ImageReduced, ImageMean, RegionDynThresh, 5, 'light') 
+        endif 
+        dev_display (RegionDynThresh) 
+        * 
+        connection (RegionDynThresh, ConnectedRegions) 
+        opening_circle (ConnectedRegions, RegionOpening, 2.5) 
+        closing_circle (RegionOpening, SelectedRegions, 5.5) 
+        select_shape_std (RegionOpening, SelectedRegions, 'max_area', 70) 
+        * 
+        dev_clear_window () 
+        dev_display (Image) 
+        dev_display (SelectedRegions) 
+        * 
+        read_ocr_class_mlp ('Industrial_0-9.omc', OCRHandle1) 
+        do_ocr_multi_class_mlp (SelectedRegions, ImageInvert, OCRHandle1, Class, Confidence) 
+        area_center (SelectedRegions, Area, Row, Column) 
+        Rows := [Rows,Row] 
+        Cols := [Cols,Column] 
+        Cs := [Cs,Class] 
+        * 
+        dev_display (Image) 
+        dev_set_color ('red') 
+        for i := 0 to |Class|-1 by 1 
+            set_tposition (WindowHandle, Row, Column) 
+            write_string (WindowHandle, Class) 
+            wait_seconds (0.5) 
+        endfor 
+    endfor 
+    * 
+endfor 
+* show all ocr 
+dev_display (Image) 
+dev_set_color ('red') 
+dev_set_line_width (5) 
+for i := 0 to |Cs|-1 by 1 
+    set_tposition (WindowHandle, Rows+22, Cols) 
+    write_string (WindowHandle, Cs) 
+endfor 
+*

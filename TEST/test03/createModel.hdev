@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<hdevelop file_version="1.2" halcon_version="18.05.0.1">
+<procedure name="main">
+<interface/>
+<body>
+<c>**********************************************************</c>
+<c>* 暂时有问题</c>
+<c>**********************************************************</c>
+<l>read_image (Image, 'H:/projects/visual inspection/TEST/test03/0.bmp')</l>
+<c>*读取模板图像</c>
+<l>rgb1_to_gray (Image, GrayImage)</l>
+<c>*灰度操作</c>
+<l>gen_rectangle1 (ROI_0, 800, 1050, 1401, 1248)</l>
+<c>*选择要匹配的图像，去除不必要的</c>
+<l>reduce_domain (GrayImage, ROI_0, ImageReduced2)</l>
+<c>*减少图像，分割出切除的那部分</c>
+<l>bin_threshold (ImageReduced2, Region1)</l>
+<c>*自动灰度阈值处理</c>
+<l>connection (Region1, ConnectedRegions1)</l>
+<c>*求联通域</c>
+<l>select_shape (ConnectedRegions1, SelectedRegions1, 'area', 'and', 8, 14016)</l>
+<c>*选择图像</c>
+<l>reduce_domain (ImageReduced2, SelectedRegions1, ImageReduced3)</l>
+<c>*分割出图像</c>
+<l>inspect_shape_model (ImageReduced3, ModelImages1, ModelRegions1, 4, 30)</l>
+<c>*创建一个形状的表示模型</c>
+<l>create_scaled_shape_model (ImageReduced3, 'auto', rad(-45), rad(90), 'auto', 0.9, 1, 0, 'no_pregeneration', 'ignore_global_polarity', 'auto', 'auto', ModelID)</l>
+<c>*使用用图像创建带有缩放的匹配模板，上面的灰度分割什么的其实可以不要</c>
+<c>*NumLevels 最高金子塔层数</c>
+<c>*AngleStart 开始角度加rad(90)是将弧度制转为角度值</c>
+<c>*AngleExtent 角度范围</c>
+<c>*AngleStep 旋转角度步长</c>
+<c>*ScaleMin 模板行方向缩放最小尺度</c>
+<c>*ScaleMax 模板行方向缩放最大尺寸</c>
+<c>*MinScore 最低匹配分值 百分比</c>
+<c>*ScaleStep 步长</c>
+<c>*Optimization 优化选项 是否减少模板点数</c>
+<c>*Metric 匹配度量级性旋转 </c>
+<c>*MinContrast 最小对比度</c>
+<c>*ModelID 生成模板ID</c>
+<l>write_shape_model (ModelID, 'H:/projects/visual inspection/TEST/test03/test03.shm')</l>
+<c>*生成模板文件</c>
+<c></c>
+<c>**********************************************************</c>
+<c>* 基于形状的模板匹配</c>
+<c>**********************************************************</c>
+<l>read_image (Image, 'H:/projects/visual inspection/TEST/test04/0.bmp')</l>
+<l>get_image_size (Image, Width, Height)</l>
+<l>dev_close_window()</l>
+<l>dev_open_window (0, 0, 512, 512, 'black', WindowHandle)</l>
+<l>dev_display (Image)</l>
+<l>* draw_circle (WindowHandle, Row, Column, Radius)</l>
+<l>draw_rectangle1 (WindowHandle, Row11, Column11, Row21, Column21)</l>
+<l>* gen_circle (Circle, Row, Column, Radius)</l>
+<l>gen_rectangle1 (Rectangle, Row11, Column11, Row21, Column21)</l>
+<l>reduce_domain (Image, Rectangle, ImageReduced)</l>
+<l>area_center (Rectangle, Area, Row1, Column1)</l>
+<c> </c>
+<c>*【1】创建模板模型</c>
+<c>*如果Metric= 'use_polarity'，图片和模板必须要有相同的对比度。例如，如果模型是一个暗的目标在一个亮的背景上，那么仅仅那些比背景暗的目标可以被找到;</c>
+<c>*如果Metric= 'ignore_global_polarity',图片和模板必须要有相同或相反的对比度</c>
+<l>create_scaled_shape_model (ImageReduced, 5, rad(-45), rad(90), 'auto', 0.8, 1.1, 'auto', 'auto', 'ignore_global_polarity', 'auto', 'auto', ModelID)</l>
+<c>*检查模型，查看设置不同参数的结果，选择一个较好的参数,这里会生成最小对比度为20的4层金字塔图像</c>
+<l>*inspect_shape_model (Image, ModelImages, ModelRegions, 4, 20)</l>
+<c> </c>
+<c>*计算机自动计算的参数</c>
+<c>*get_shape_model_params (ModelID, NumLevels, AngleStart, AngleExtent, AngleStep, *ScaleMin, ScaleMax, ScaleStep, Metric, MinContrast)</c>
+<c> </c>
+<c>*【2】得到模板轮廓</c>
+<l>get_shape_model_contours (ModelContours, ModelID, 1)</l>
+<c> </c>
+<c>*看看生成的轮廓</c>
+<l>dev_set_color ('blue')</l>
+<l>dev_set_line_width (2)</l>
+<l>vector_angle_to_rigid (0, 0, 0, Row1, Column1, 0, HomMat2D)</l>
+<l>affine_trans_contour_xld (ModelContours, ContoursAffinTrans, HomMat2D)</l>
+<l>disp_continue_message (WindowHandle, 'black', 'true')</l>
+<l>stop()</l>
+<l>write_shape_model (ModelID, 'H:/projects/visual inspection/TEST/test03/test03.shm')</l>
+</body>
+<docu id="main">
+<parameters/>
+</docu>
+</procedure>
+</hdevelop>

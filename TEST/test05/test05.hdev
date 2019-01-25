@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<hdevelop file_version="1.2" halcon_version="18.05.0.1">
+<procedure name="main">
+<interface/>
+<body>
+<c>*基于灰度值的模板匹配</c>
+<l>read_image (Image, 'H:/projects/visual inspection/TEST/test05/0.bmp')</l>
+<l>get_image_size (Image, Width, Height)</l>
+<l>dev_open_window (0, 0, 512, 512, 'black', WindowHandle)</l>
+<l>dev_display (Image)</l>
+<c> </c>
+<l>draw_rectangle1 (WindowHandle, Row1, Column1, Row2, Column2)</l>
+<l>gen_rectangle1 (Rectangle, Row1, Column1, Row2, Column2)</l>
+<l>* gen_circle (Circle, Row1, Column1, Radius)</l>
+<l>reduce_domain (Image, Rectangle, ImageReduced1)</l>
+<c>*Rectangle</c>
+<l>create_template (ImageReduced1, 255, 4, 'sort', 'original', TemplateID1)</l>
+<c>*计算模板的均值和方差</c>
+<l>intensity (Rectangle, ImageReduced1, Mean1, Deviation1)</l>
+<c> </c>
+<l>dev_set_draw ('margin')</l>
+<l>dev_set_line_width (3)</l>
+<c></c>
+<c></c>
+<l>read_image (Image, 'H:/projects/visual inspection/TEST/test05/0.bmp')</l>
+<l>dev_display (Image)</l>
+<c>*计算经过光照变换后的模板的均值和方差</c>
+<l>intensity (Rectangle, Image, Mean2, Deviation2)</l>
+<c>*设置模板的均值偏差</c>
+<l>set_offset_template (TemplateID1, Mean2-Mean1)</l>
+<c></c>
+<c>*匹配模板</c>
+<l>best_match_rot_mg (Image, TemplateID1, -0.39, 0.79, 40, 'false', 3, Row, Column, Angle, Error)</l>
+<c>* disp_rec(WindowHandle, Row, Column, Rectangle)</c>
+<l>disp_rectangle1 (WindowHandle, Row1, Column1, Row2, Column2)</l>
+<l>disp_continue_message (WindowHandle, 'black', 'true')</l>
+<l>stop()</l>
+</body>
+<docu id="main">
+<parameters/>
+</docu>
+</procedure>
+</hdevelop>
