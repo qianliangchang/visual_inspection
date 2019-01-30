@@ -3,10 +3,10 @@
 <procedure name="main">
 <interface/>
 <body>
-<l>read_image (Image, 'H:/projects/visual inspection/TEST/基于形状的模板匹配/20180829123717296.jpg')</l>
-<l>get_image_size (Image, Width, Height)</l>
 <l>dev_open_window (0, 0, Width, Height, 'black', WindowHandle)</l>
-<l>dev_display (Image)</l>
+<l>read_image (Image, 'H:/projects/visual inspection/images/m5.bmp')</l>
+<l>get_image_size (Image, Width, Height)</l>
+<c></c>
 <l>draw_circle (WindowHandle, Row, Column, Radius)</l>
 <l>gen_circle (Circle, Row, Column, Radius)</l>
 <l>reduce_domain (Image, Circle, ImageReduced)</l>
