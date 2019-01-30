@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<hdevelop file_version="1.2" halcon_version="18.05.0.1">
+<procedure name="main">
+<interface/>
+<body>
+<l>read_image (Image, 'H:/projects/visual inspection/TEST/基于形状的模板匹配/20180829123732478.jpg')</l>
+<l>get_image_size (Image, Image_Width, Image_Height)</l>
+<l>dev_close_window()</l>
+<l>dev_open_window(0, 0, Image_Width, Image_Height, 'black', WindowHandle)</l>
+<l>dev_display(Image)</l>
+<c>*【1】读取模板</c>
+<l>read_shape_model ('H:/projects/visual inspection/TEST/基于形状的模板匹配/model.shm', ModelID)</l>
+<c>* 返回模板轮廓</c>
+<l>get_shape_model_contours (ModelContours, ModelID, 1)</l>
+<c>*【2】寻找模板，第七个参数为设置匹配的最小分数，第八个参数为设置匹配的个数，0表示有多少个识别多少个</c>
+<l>find_scaled_shape_model (Image, ModelID, -180, 180, 0.5, 1.5, 0.5, 0, 0.5, 'none', 5, 0.8, Row2, Column2, Angle, Scale, Score)</l>
+<c> </c>
+<l>for I := 0 to |Score| - 1 by 1</l>
+<c>    *生成一个单位矩阵</c>
+<l>    hom_mat2d_identity (HomMat2DIdentity)</l>
+<c>    *平移</c>
+<l>    hom_mat2d_translate (HomMat2DIdentity, Row2[I], Column2[I], HomMat2DTranslate)</l>
+<c>    *旋转</c>
+<l>    hom_mat2d_rotate (HomMat2DTranslate, Angle[I], Row2[I], Column2[I], HomMat2DRotate)</l>
+<c>    *放缩，得到最终的仿射变换矩阵</c>
+<l>    hom_mat2d_scale (HomMat2DRotate, Scale[I], Scale[I], Row2[I], Column2[I], HomMat2DScale)</l>
+<c>    *仿射变换</c>
+<l>    affine_trans_contour_xld (ModelContours, ModelTrans, HomMat2DScale)</l>
+<l>    dev_display (ModelTrans)</l>
+<l>endfor</l>
+<c></c>
+</body>
+<docu id="main">
+<parameters/>
+</docu>
+</procedure>
+</hdevelop>
