@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<hdevelop file_version="1.2" halcon_version="18.05.0.1">
+<procedure name="main">
+<interface/>
+<body>
+<l>list_files ('H:/projects/visual inspection/TEST/裂缝检测/images', ['files','follow_links','recursive'], ImageFiles) </l>
+<l>tuple_regexp_select (ImageFiles, ['\\.(tif|tiff|gif|bmp|jpg|jpeg|jp2|png|pcx|pgm|ppm|pbm|xwd|ima|hobj)$','ignore_case'], ImageFiles) </l>
+<l>for Index := 0 to |ImageFiles| - 1 by 1 </l>
+<l>    read_image (Image, ImageFiles[Index]) </l>
+<c>    * Image Acquisition 01: Do something </c>
+<l>    threshold (Image, Region, 180, 255) </l>
+<l>    connection (Region, ConnectedRegions) </l>
+<l>    select_shape_std (ConnectedRegions, SelectedRegions, 'max_area', 70) </l>
+<l>    smallest_circle (SelectedRegions, Row, Column, Radius) </l>
+<l>    closing_circle (SelectedRegions, RegionClosing, 23.5)</l>
+<l>    gen_circle (Circle, Row, Column, Radius-10) </l>
+<l>    intersection (Circle, RegionClosing, RegionIntersection) </l>
+<l>    reduce_domain (Image, RegionIntersection, ImageReduced) </l>
+<l>    lines_gauss (ImageReduced, Lines, 1.5, 3, 8, 'dark', 'true', 'bar-shaped', 'true') </l>
+<l>    select_contours_xld (Lines, SelectedContours, 'contour_length', 10, 99999, -0.5, 0.5) </l>
+<l>    dev_set_color ('red') </l>
+<l>    dev_set_line_width (3) </l>
+<l>    dev_display (Image) </l>
+<l>    dev_display (SelectedContours) </l>
+<l>    stop () </l>
+<l>endfor</l>
+</body>
+<docu id="main">
+<parameters/>
+</docu>
+</procedure>
+</hdevelop>

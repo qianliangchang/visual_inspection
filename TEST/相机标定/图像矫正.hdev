@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<hdevelop file_version="1.2" halcon_version="18.05.0.1">
+<procedure name="main">
+<interface/>
+<body>
+<l>read_image(Image,'H:/projects/visual inspection/TEST/相机标定/标定板图像/16mm/图像.bmp')</l>
+<l>dev_display (Image)</l>
+<l>stop()</l>
+<l>rgb1_to_gray(Image,GrayImage)</l>
+<c></c>
+<l>*CamParOriginal:=[0.00219846,-78129.2,5.46495e-06,5.5e-06,318.206,236.732,640,480]</l>
+<l>CamParOriginal:=[0.0161995,-150.562,2.39975e-006,2.4e-006,2774.94,1855.21,5472,3648]</l>
+<l>CamParVirtualFixed:=CamParOriginal</l>
+<l>CamParVirtualFixed[1]:=0</l>
+<c>*上面三条是标定时候的参数</c>
+<l>*CamParOriginal:=[0.0185035,-577.432,8.36027e-006,8.3e-006,257.808,274.753,640,480]</l>
+<l>*CameraPose := [-0.00933436,-0.0180203,0.295919,11.5956,32.1633,268.06,0]</l>
+<l>*CamParVirtualFixed:=CamParOriginal  </l>
+<l>*CamParVirtualFixed[1]:=0 </l>
+<l>gen_radial_distortion_map(MapFixed,CamParOriginal,CamParVirtualFixed,'bilinear')</l>
+<c></c>
+<c>*生产径向畸变映射图，</c>
+<c>*mapfixed是输出，</c>
+<c>*CamParOriginal是标定后的参数，</c>
+<c>*CamParVirtualFixed也是输出的参数，</c>
+<c>*'bilinear'映射类型</c>
+<l>map_image(GrayImage,MapFixed,ImageRectifiedFixed)</l>
+<c>*利用映射，消除图像畸变算子</c>
+<l>write_image(ImageRectifiedFixed, 'bmp', 0, '矫正后')</l>
+</body>
+<docu id="main">
+<parameters/>
+</docu>
+</procedure>
+</hdevelop>

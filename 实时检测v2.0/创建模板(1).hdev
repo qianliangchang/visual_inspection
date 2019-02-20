@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<hdevelop file_version="1.2" halcon_version="18.05.0.1">
+<procedure name="main">
+<interface/>
+<body>
+<c>*****************基于形状的模板定位：创建模板*******************</c>
+<l>open_file('H:/projects/visual inspection/张前亮的程序/VariationModelLocation.txt', 'output', FileHandle)</l>
+<c>* 读入待取模板的图像</c>
+<l>read_image (Image, 'H:/projects/visual inspection/张前亮的程序/矫正后.bmp')</l>
+<c>* 获取图像尺寸</c>
+<l>get_image_size (Image, Width, Height)</l>
+<c>* 先关闭窗口</c>
+<l>dev_close_window()</l>
+<c>* 根据图片尺寸打开一个窗口</c>
+<l>dev_open_window (0, 0, Width/5, Height/5, 'black', WindowHandle)</l>
+<c>* 显示图像</c>
+<c>* 选取制作模板区域（矩形:先框处整个标签，再框出不需要作为模板的区域）</c>
+<l>* draw_rectangle2(WindowHandle, Row, Column, Phi, Length1, Length2)</l>
+<l>* draw_rectangle2(WindowHandle, Row2, Column2, Phi1, Length11, Length21)</l>
+<l>* draw_rectangle2(WindowHandle, Row3, Column3, Phi2, Length12, Length22)</l>
+<l>* gen_rectangle2(Rectangle1, Row, Column, Phi, Length1, Length2)</l>
+<l>* gen_rectangle2(Rectangle2, Row2, Column2, Phi1, Length11, Length21)</l>
+<l>* gen_rectangle2(Rectangle3, Row3, Column3, Phi2, Length12, Length22)</l>
+<c>* 作差</c>
+<l>* difference (Rectangle1, Rectangle2, temp_Difference)</l>
+<l>* difference(temp_Difference,Rectangle3,RegionDifference)</l>
+<l>VNumber:=2//设定需要保存的变量模板数量</l>
+<l>for cVNumber:=1 to VNumber by 1</l>
+<l>    dev_display (Image)</l>
+<l>    draw_rectangle1(WindowHandle, Row11, Column11, Row2, Column2)</l>
+<l>    gen_rectangle1(Rectangle1, Row11, Column11, Row2, Column2)</l>
+<c>    </c>
+<c>    * 提取当前区域</c>
+<l>    reduce_domain (Image, Rectangle1, ImageReduced)</l>
+<c>    * 检查模型，查看设置不同参数的结果，选择一个较好的参数,这里会生成最小对比度为20的4层金字塔图像</c>
+<l>    inspect_shape_model (ImageReduced, ModelImages, ModelRegions, 1, 80)</l>
+<l>*   area_center(ModelRegions, Area, Row, Column)//用Region定位，实际位置会有几个像素点的偏差</l>
+<c>    * 计算当前区域的面积、中心点坐标</c>
+<l>    smallest_rectangle1(ModelRegions, Row1, Column1, Row21, Column21)</l>
+<l>    gen_rectangle1(Rectangle, Row11, Column11, Row21, Column21)</l>
+<c>    </c>
+<c>    </c>
+<c>    * 创建模板模型</c>
+<c>    * 如果Metric= 'use_polarity'，图片和模板必须要有相同的对比度。例如，如果模型是一个暗的目标在一个亮的背景上，那么仅仅那些比背景暗的目标可以被找到;</c>
+<c>    * 如果Metric= 'ignore_global_polarity',图片和模板必须要有相同或相反的对比度</c>
+<l>    create_scaled_shape_model (ImageReduced, 5, -180, 180, 'auto', 0.2, 2, 'auto', 'auto', 'ignore_global_polarity', 'auto', 'auto', ModelID)  </l>
+<c>    * 计算机自动计算的参数</c>
+<c>    *get_shape_model_params (ModelID, NumLevels, AngleStart, AngleExtent, AngleStep, *ScaleMin, ScaleMax, ScaleStep, Metric, MinContrast)</c>
+<l>    find_shape_model(ImageReduced, ModelID, -0.39, 0.79, 0.5, 1, 0.5, 'least_squares', 0, 0.9, RowFind, ColumnFind, AngleFind, ScoreFind)</l>
+<c>    * 得到基于形状的模板轮廓</c>
+<l>    get_shape_model_contours (ModelContours, ModelID, 1)</l>
+<c></c>
+<c>    * 看看生成的轮廓</c>
+<l>    dev_set_color ('red')</l>
+<l>    dev_set_line_width (2)</l>
+<l>    vector_angle_to_rigid (0, 0, 0, RowFind, ColumnFind, AngleFind, HomMat2D)</l>
+<l>    affine_trans_contour_xld (ModelContours, ZoomedEdges, HomMat2D)</l>
+<c>    *记录模板的坐标信息，用于变量模板的定位</c>
+<l>    gen_region_contour_xld(ZoomedEdges, Region, 'filled')</l>
+<l>    union1(Region, RegionUnion)</l>
+<l>    shape_trans(RegionUnion, RegionTrans, 'convex')</l>
+<l>    area_center(RegionTrans, Area, Row, Column)</l>
+<l>    orientation_region(RegionTrans, Phi)</l>
+<l>    fwrite_string(FileHandle,cVNumber+' '+Row+' '+Column+' '+Phi+'\r\n')</l>
+<c>    </c>
+<l>    disp_continue_message (WindowHandle, 'black', 'true')</l>
+<l>    stop ()</l>
+<c>    * 将制作好的模板保存到本地</c>
+<l>    write_shape_model (ModelID, 'H:/projects/visual inspection/张前亮的程序'+cVNumber+'.shm')</l>
+<c>    </c>
+<c>    ***********************制作variation_model*****************************</c>
+<l>*    edges_sub_pix (ImageReduced, Edges, 'sobel_fast', 0.5, 10, 20)</l>
+<l>*    hom_mat2d_identity (HomMat2DIdentity)</l>
+<l>*    hom_mat2d_scale (HomMat2DIdentity, 1, 1, 0, 0, HomMat2DScale)</l>
+<l>*    affine_trans_contour_xld (Edges, ZoomedEdges, HomMat2DScale)</l>
+<l>    gen_image_const (VarImageBig, 'byte', Width, Height)</l>
+<l>    count_obj (ZoomedEdges, NEdges)</l>
+<l>    for i := 1 to NEdges by 1</l>
+<l>        select_obj (ZoomedEdges, ObjectSelected, i)</l>
+<l>        get_contour_xld (ObjectSelected, RowEdge, ColEdge)</l>
+<l>        gen_region_polygon (Region1, RowEdge, ColEdge)</l>
+<l>*         gen_region_contour_xld(ObjectSelected, Region, 'margin') </l>
+<l>        dilation_circle (Region1, RegionDilation, 2.5)</l>
+<l>        paint_region (RegionDilation, VarImageBig, VarImageBig, 255, 'fill')</l>
+<l>    endfor</l>
+<l>    stop()</l>
+<l>*    zoom_image_size (VarImageBig, VarImageSmall, Width, Height, 'weighted')</l>
+<l>    binomial_filter (VarImageBig, VarImage, 3, 3)</l>
+<l>    create_variation_model (Width, Height, 'byte', 'direct', VarModelID)</l>
+<l>    prepare_direct_variation_model (ImageReduced, VarImage, VarModelID, 15, 4)</l>
+<l>    dev_display (VarImage)</l>
+<l>    disp_message (WindowHandle, 'Variation Image', 'window', 12, 12, 'black', 'true')</l>
+<l>    disp_continue_message (WindowHandle, 'black', 'true')</l>
+<l>    stop()</l>
+<c>    * 将制作好的模板保存到本地</c>
+<l>    write_variation_model(VarModelID, 'H:/projects/visual inspection/张前亮的程序'+cVNumber+'.vam')</l>
+<l>endfor</l>
+<l>close_file(FileHandle)</l>
+</body>
+<docu id="main">
+<parameters/>
+</docu>
+</procedure>
+</hdevelop>

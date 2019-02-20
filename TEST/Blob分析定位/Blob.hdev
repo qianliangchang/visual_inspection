@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<hdevelop file_version="1.2" halcon_version="18.05.0.1">
+<procedure name="main">
+<interface/>
+<body>
+<c>*********************基于Blob分析的定位分析******************************</c>
+<l>read_image (Image, 'H:/projects/visual inspection/TEST/Blob分析定位/2.bmp')</l>
+<l>threshold (Image, Regions, 158, 255)</l>
+<l>opening_rectangle1 (Regions, RegionOpening, 20, 20)</l>
+<l>connection (RegionOpening, ConnectedRegions)</l>
+<l>fill_up (ConnectedRegions, RegionFillUp)</l>
+<l>select_shape (RegionFillUp, SelectedRegions, 'row', 'and', 446.79, 3168.49)</l>
+<l>union1 (SelectedRegions, RegionUnion)</l>
+<l>connection (RegionUnion, ConnectedRegions1)</l>
+<l>shape_trans (ConnectedRegions1, RegionTrans, 'inner_rectangle1')</l>
+<l>count_obj (RegionTrans, Number)</l>
+<l>for Index := 1 to Number-1 by 1</l>
+<l>    select_obj (RegionTrans, ObjectSelected, Index)</l>
+<l>    area_center (ObjectSelected, Area, Row, Column)</l>
+<l>    orientation_region (ObjectSelected, Phi)</l>
+<l>    vector_angle_to_rigid (Row, Column, Phi, Row, Column, 0, HomMat2D)</l>
+<l>    affine_trans_region (ObjectSelected, ObjectSelectedAffineTrans, HomMat2D, 'nearest_neighbor')</l>
+<l>    dev_display (ObjectSelectedAffineTrans)</l>
+<l>endfor</l>
+</body>
+<docu id="main">
+<parameters/>
+</docu>
+</procedure>
+</hdevelop>
