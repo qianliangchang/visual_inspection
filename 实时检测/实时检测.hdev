@@ -7,11 +7,11 @@
 <l>dev_close_window()</l>
 <l>dev_open_window (0, 0, 512, 512, 'black', WindowHandle)</l>
 <c>*读取模板</c>
-<l>read_shape_model ('H:/projects/visual inspection/TEST/基于形状的模板匹配2/model.shm', ModelID)</l>
+<l>read_shape_model ('H:/projects/visual inspection/实时检测/model2.shm', ModelID)</l>
+<l>read_variation_model('H:/projects/visual inspection/实时检测/VariationModel2.vam', VarModelID)</l>
 <c>* 返回模板轮廓</c>
 <l>get_shape_model_contours (ModelContours, ModelID, 1)</l>
-<c></c>
-<c>* 创建条码识别器(目前用39码做测试)</c>
+<c>* 创建条码识别器(目前用128码做测试)</c>
 <l>create_bar_code_model ([], [], BarCodeHandle)</l>
 <l>dev_set_draw ('margin')</l>
 <l>dev_set_line_width (2)</l>
@@ -25,10 +25,10 @@
 <l>while (true)</l>
 <l>    *grab_image_async (Image, AcqHandle, -1)</l>
 <c>    </c>
-<l>    read_image (Image, 'H:/projects/visual inspection/images/优博创标签图像/1.bmp')</l>
+<l>    read_image (Image, 'H:/projects/visual inspection/images/优博创标签图像/2.bmp')</l>
 <c></c>
 <c>    * 寻找模板，第七个参数为设置匹配的最小分数，第八个参数为设置匹配的个数，0表示有多少个识别多少个</c>
-<l>    find_scaled_shape_model (Image, ModelID, -180, 180, 0.5, 1.2, 0.5, 0, 0.5, 'none', 55, 0.8, Row2, Column2, Angle, Scale, Score)</l>
+<l>    find_scaled_shape_model (Image, ModelID, -180, 180, 0.5, 1.2, 0.4, 0, 0.5, 'none', 55, 0.8, Row2, Column2, Angle, Scale, Score)</l>
 <c>  </c>
 <c>    * 按照置信度，遍历所有找到的模板</c>
 <l>    for I := 0 to |Score|-1 by 1</l>
@@ -46,11 +46,11 @@
 <l>        dev_display (ModelTrans)</l>
 <c>        </c>
 <c>        **************提取当前模板下的区域************************</c>
-<c>        * 填充当前区域</c>
+<c>        * 填充当前模板区域</c>
 <l>        gen_region_contour_xld(ModelTrans,Region,'filled')</l>
-<c>        * 提取当前区域</c>
+<c>        * 提取当前模板区域</c>
 <l>        reduce_domain (Image, Region, sub_Image)</l>
-<c>        * 计算当前区域的面积、中心坐标</c>
+<c>        * 计算当前模板区域的面积、中心坐标</c>
 <l>        area_center (sub_Image, ImageReduced_Area, ImageReduced_Row, ImageReduced_Column)</l>
 <c>        </c>
 <c>        **************************ORC识别**************************************</c>
@@ -69,9 +69,9 @@
 <l>        *stop()</l>
 <c>         </c>
 <c>        **************************一维条码定位及识别**************************************</c>
-<l>        find_bar_code (sub_Image, SymbolRegions, BarCodeHandle, 'Codabar', DecodedDataStrings)</l>
+<l>        find_bar_code (sub_Image, SymbolRegion, BarCodeHandle, 'Code 128', DecodedDataStrings)</l>
 <l>        dev_display (Image)</l>
-<l>        dev_display (SymbolRegions)</l>
+<l>        dev_display (SymbolRegion)</l>
 <l>        get_bar_code_object (BarCodeObjects, BarCodeHandle, 'all', 'symbol_regions')</l>
 <l>        get_bar_code_result (BarCodeHandle, 'all', 'decoded_strings', BarCodeResults)</l>
 <l>        for J := 0 to |DecodedDataStrings|-1 by 1</l>
@@ -80,6 +80,61 @@
 <l>            dev_display (ObjectSelected)</l>
 <l>        endfor</l>
 <l>        disp_message (WindowHandle, DecodedDataStrings, 'window', 12, 12, Colors, 'true')</l>
+<l>        stop()</l>
+<c>       *****************************识别一维条码脏污及破损*********************************</c>
+<l>        if (DecodedDataStrings = [])</l>
+<l>             disp_message (WindowHandle, 'Code NG', 'window', 12, 120, 'red', 'true')</l>
+<l>        endif</l>
+<l>        if (DecodedDataStrings != [])</l>
+<c>            * 提取一维条码处的区域</c>
+<l>            reduce_domain (Image, SymbolRegion, sub_SymbolRegion)</l>
+<l>            threshold (sub_SymbolRegion, Code_Regions, 5, 185)</l>
+<l>            connection(Code_Regions, ConnectedRegions)</l>
+<c>            *将ConnectedRegions区域内直角度0.85以上的区域选取出来</c>
+<l>            select_shape(ConnectedRegions, SelectedRegions, 'rectangularity', 'and', 0.85, 1.0)</l>
+<c>            *填充SelectedRegions区域</c>
+<l>            fill_up (SelectedRegions, RegionFillUp)</l>
+<c>            *将RegionFillUp区域化成标准的形状区域</c>
+<l>            shape_trans (RegionFillUp, RegionTrans, 'rectangle2')        </l>
+<l>            count_obj(RegionTrans, Number)</l>
+<l>            for K := 0 to |Number|-1 by 1</l>
+<c>                *按顺序选取RegionTrans内的区域</c>
+<l>                select_obj (RegionTrans, ObjectSelected, K+1)</l>
+<l>                smallest_rectangle2(ObjectSelected, Row, Column, Phi, Length1, Length2)</l>
+<l>                gen_rectangle2(Rectangle, Row, Column, Phi, Length1, Length2)</l>
+<l>                difference(Rectangle, ObjectSelected, RegionDifference)</l>
+<l>                area_center(RegionDifference, Area, Row1, Column1)</l>
+<l>                if(Area&gt;600)</l>
+<l>                    disp_message (WindowHandle, 'Code NG', 'window', 12, 120, 'red', 'true')</l>
+<l>                endif</l>
+<l>                stop()</l>
+<l>            endfor</l>
+<l>        endif</l>
+<c>    </c>
+<c>        **********************************检测标签脏污******************************************</c>
+<l>        stop()</l>
+<l>        vector_angle_to_rigid (Row2[I], Column2[I], Angle[I], Row2[I], Column2[I], 0, HomMat2D)</l>
+<l>        affine_trans_image (Image, ImageAffineTrans, HomMat2D, 'constant', 'false')</l>
+<l>        reduce_domain (ImageAffineTrans, sub_Image, ImageReduced1)</l>
+<l>        compare_ext_variation_model (ImageReduced1, RegionDiff, VarModelID, 'absolute')</l>
+<l>        connection (RegionDiff, ConnectedRegions)</l>
+<l>        select_shape (ConnectedRegions, SelectedRegions, 'area', 'and', 10, 200000)</l>
+<c>        * </c>
+<l>        dev_display (Image)</l>
+<l>        count_obj (SelectedRegions, NDefects)</l>
+<l>        if (NDefects &gt; 0)</l>
+<l>            dev_set_color ('red')</l>
+<l>            dev_set_draw ('margin')</l>
+<l>            dev_set_line_width (1)</l>
+<l>            dev_display (SelectedRegions)</l>
+<l>            dev_set_color ('green')</l>
+<l>            dev_set_line_width (1)</l>
+<l>            *dev_display (Edges)</l>
+<l>            disp_message (WindowHandle, 'Image check not OK', 'window', 12, 12, 'red', 'false')</l>
+<l>        else</l>
+<l>            disp_message (WindowHandle, 'Image check OK', 'window', 12, 12, 'green', 'false')</l>
+<l>        endif</l>
+<l>        stop()</l>
 <l>    endfor</l>
 <l>    stop()</l>
 <l>endwhile</l>

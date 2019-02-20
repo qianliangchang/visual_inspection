@@ -6,7 +6,7 @@
 <c>*****************基于形状的模板定位：创建模板*******************</c>
 <c></c>
 <c>* 读入待取模板的图像</c>
-<l>read_image (Image, 'H:/projects/visual inspection/images/image2000/m5.bmp')</l>
+<l>read_image (Image, 'H:/projects/visual inspection/images/优博创标签图像/1.bmp')</l>
 <c>* 获取图像尺寸</c>
 <l>get_image_size (Image, Width, Height)</l>
 <c>* 先关闭窗口</c>
@@ -36,23 +36,50 @@
 <l>create_scaled_shape_model (ImageReduced, 5, -180, 180, 'auto', 0.2, 2, 'auto', 'auto', 'ignore_global_polarity', 'auto', 'auto', ModelID)</l>
 <c></c>
 <c>* 检查模型，查看设置不同参数的结果，选择一个较好的参数,这里会生成最小对比度为20的4层金字塔图像</c>
-<l>*inspect_shape_model (Image, ModelImages, ModelRegions, 4, 20)</l>
+<l>*inspect_shape_model (Image, ModelImages, ModelRegions, 1, 80)</l>
 <c> </c>
 <c>* 计算机自动计算的参数</c>
 <c>*get_shape_model_params (ModelID, NumLevels, AngleStart, AngleExtent, AngleStep, *ScaleMin, ScaleMax, ScaleStep, Metric, MinContrast)</c>
 <c> </c>
-<c>* 得到模板轮廓</c>
+<c>* 得到基于形状的模板轮廓</c>
 <l>get_shape_model_contours (ModelContours, ModelID, 1)</l>
 <c> </c>
 <c>* 看看生成的轮廓</c>
 <l>dev_set_color ('red')</l>
 <l>dev_set_line_width (2)</l>
 <l>vector_angle_to_rigid (0, 0, 0, Row1, Column1, 0, HomMat2D)</l>
-<l>affine_trans_contour_xld (ModelContours, ContoursAffinTrans, HomMat2D)</l>
+<l>affine_trans_contour_xld (ModelContours, ZoomedEdges, HomMat2D)</l>
 <l>disp_continue_message (WindowHandle, 'black', 'true')</l>
+<l>stop ()</l>
 <c>* 将制作好的模板保存到本地</c>
-<l>write_shape_model (ModelID, 'H:/projects/visual inspection/实时检测/model1.shm')</l>
+<l>write_shape_model (ModelID, 'H:/projects/visual inspection/实时检测/model2.shm')</l>
+<c></c>
+<c>***********************制作variation_model*****************************</c>
+<l>*edges_sub_pix (ImageReduced, Edges, 'sobel_fast', 0.5, 10, 20)</l>
+<l>*hom_mat2d_identity (HomMat2DIdentity)</l>
+<l>*hom_mat2d_scale (HomMat2DIdentity, 1, 1, 0, 0, HomMat2DScale)</l>
+<l>*affine_trans_contour_xld (Edges, ZoomedEdges, HomMat2DScale)</l>
+<l>gen_image_const (VarImageBig, 'byte', Width, Height)</l>
+<l>count_obj (ZoomedEdges, NEdges)</l>
+<l>for i := 1 to NEdges by 1</l>
+<l>    select_obj (ZoomedEdges, ObjectSelected, i)</l>
+<l>    get_contour_xld (ObjectSelected, RowEdge, ColEdge)</l>
+<l>    gen_region_polygon (Region1, RowEdge, ColEdge)</l>
+<l>    dilation_circle (Region1, RegionDilation, 2.5)</l>
+<l>    paint_region (RegionDilation, VarImageBig, VarImageBig, 255, 'fill')</l>
+<l>endfor</l>
 <l>stop()</l>
+<l>*zoom_image_size (VarImageBig, VarImageSmall, Width, Height, 'weighted')</l>
+<l>binomial_filter (VarImageBig, VarImage, 3, 3)</l>
+<l>create_variation_model (Width, Height, 'byte', 'direct', VarModelID)</l>
+<l>prepare_direct_variation_model (ImageReduced, VarImage, VarModelID, 15, 4)</l>
+<l>dev_display (VarImage)</l>
+<l>disp_message (WindowHandle, 'Variation Image', 'window', 12, 12, 'black', 'true')</l>
+<l>disp_continue_message (WindowHandle, 'black', 'true')</l>
+<l>stop()</l>
+<c>* 将制作好的模板保存到本地</c>
+<l>write_variation_model(VarModelID, 'H:/projects/visual inspection/实时检测/VariationModel2.vam')</l>
+<c></c>
 </body>
 <docu id="main">
 <parameters/>
