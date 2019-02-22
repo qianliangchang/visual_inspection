@@ -5,13 +5,13 @@
 <body>
 <l>dev_close_window()</l>
 <l>dev_open_window (0, 0, 512, 512, 'black', WindowHandle)</l>
-<l>read_image (Image, 'H:/projects/visual inspection/张前亮的程序/矫正后.bmp')</l>
+<l>read_image (Image, 'H:/projects/visual inspection/实时检测v2.0/矫正后.bmp')</l>
 <l>dev_display(Image)</l>
 <c></c>
 <l>VNumber:=2</l>
 <l>for cVNumber:=1 to VNumber by 1</l>
 <c>    *读取位置参数</c>
-<l>    open_file('H:/projects/visual inspection/张前亮的程序/VariationModelLocation.txt', 'input', FileHandle)</l>
+<l>    open_file('H:/projects/visual inspection/实时检测v2.0/VariationModelLocation.txt', 'input', FileHandle)</l>
 <l>    ModelLocation:=[]//依次记录模板编号、Row、Column、Phi</l>
 <l>    for i:=1 to 4*VNumber by 1</l>
 <l>        fread_string(FileHandle, OutString, IsEOF)</l>
@@ -19,15 +19,15 @@
 <l>        tuple_concat(ModelLocation,Temp, ModelLocation)</l>
 <l>    endfor</l>
 <l>    close_file(FileHandle)</l>
-<l>    stop()</l>
+<l>    *stop()</l>
 <c>    *读取模板</c>
-<l>    read_shape_model ('H:/projects/visual inspection/张前亮的程序'+cVNumber+'.shm', ModelID)</l>
-<l>    read_variation_model('H:/projects/visual inspection/张前亮的程序'+cVNumber+'.vam', VarModelID)</l>
+<l>    read_shape_model ('H:/projects/visual inspection/实时检测v2.0/'+cVNumber+'.shm', ModelID)</l>
+<l>    read_variation_model('H:/projects/visual inspection/实时检测v2.0/'+cVNumber+'.vam', VarModelID)</l>
 <c>    * 返回模板轮廓</c>
 <l>    get_shape_model_contours (ModelContours, ModelID, 1)</l>
 <l>    get_thresh_images_variation_model(MinImage, MaxImage, VarModelID)</l>
 <c>    * 寻找模板，第七个参数为设置匹配的最小分数，第八个参数为设置匹配的个数，0表示有多少个识别多少个</c>
-<l>    find_scaled_shape_model (Image, ModelID, -180, 180, 0.5, 1.2, 0.4, 0, 0.5, 'none', 55, 0.8, Row2, Column2, Angle, Scale, Score)   </l>
+<l>    find_scaled_shape_model (Image, ModelID, -  180, 180, 0.5, 1.2, 0.4, 0, 0.5, 'none', 55, 0.8, Row2, Column2, Angle, Scale, Score)   </l>
 <c>    * 按照置信度，遍历所有找到的模板</c>
 <l>    for I := 0 to |Score|-1 by 1</l>
 <c>        * 重新显示原图</c>
@@ -49,7 +49,7 @@
 <l>        shape_trans(RegionUnion, RegionTransRegion, 'convex')</l>
 <l>        area_center(RegionTransRegion, AreaRegion, RowRegion, ColumnRegion)</l>
 <l>        orientation_region(RegionTransRegion, PhiRegion)</l>
-<l>        stop()</l>
+<l>        *stop()</l>
 <c>        </c>
 <c>        **********************************检测标签脏污******************************************</c>
 <l>        j:=cVNumber*4+1</l>
@@ -59,7 +59,7 @@
 <l>        reduce_domain (ImageAffineTrans, RegionAffineTrans, ImageReducedTarget)</l>
 <l>        compare_ext_variation_model (ImageReducedTarget, RegionDiff, VarModelID, 'absolute')</l>
 <l>        connection (RegionDiff, ConnectedRegions)</l>
-<l>        select_shape (ConnectedRegions, SelectedRegions, 'area', 'and', 50, 200000)</l>
+<l>        select_shape (ConnectedRegions, SelectedRegions, 'area', 'and', 500, 200000)</l>
 <c>  </c>
 <l>        count_obj (SelectedRegions, NDefects)</l>
 <l>        if (NDefects &gt; 0)</l>
@@ -72,16 +72,17 @@
 <l>            *disp_message (WindowHandle, 'Image check OK', 'window', 12, 12, 'green', 'false')</l>
 <l>            dev_disp_text('Image check OK', 'image', 12, 12, 'green', [], [])</l>
 <l>        endif</l>
-<l>        stop()</l>
+<l>        *stop()</l>
 <l>    endfor</l>
-<l>    stop()</l>
+<l>    *stop()</l>
 <l>    clear_shape_model(ModelID)</l>
 <l>    clear_train_data_variation_model(VarModelID)</l>
 <l>endfor  </l>
-<l>stop()</l>
+<c></c>
 <c></c>
 <c></c>
 <c>***************Blob分析定位标签**********************</c>
+<l>*stop()</l>
 <l>binary_threshold(Image,Region, 'max_separability', 'light', UsedThreshold)</l>
 <l>*connection(Region, ConnectedRegionsLabel)</l>
 <l>opening_rectangle1 (Region, RegionOpening, 20, 20)</l>
@@ -102,30 +103,30 @@
 <l>set_display_font (WindowHandle, 14, 'mono', 'true', 'false')</l>
 <l>set_bar_code_param (BarCodeHandle, 'element_size_max', 6)  </l>
 <c>* Create Automatic Text Reader and set some parameters</c>
-<l>create_text_model_reader ('auto', 'Industrial_0-9A-Z_Rej.omc', TextModel)</l>
+<l>create_text_model_reader ('auto', 'Industrial_0-9_Rej.omc', TextModel)</l>
 <c></c>
 <l>for j:=1 to LabelCount by 1</l>
 <l>    select_obj(Labels, Label, j)</l>
 <l>    reduce_domain(Image, Label, LabelImage)</l>
 <c>    </c>
-<c>    ************************标签边缘缺损检测*******************************</c>
+<c>    ************************标签边缘翘角+标签完整性+是否贴出模块边缘 检测（计算检测出的标签区域和拟合矩形面积差）*******************************</c>
+<c>    * 阈值分割出标签区域</c>
+<l>    threshold (LabelImage, LabelImageRegions, 159, 255)</l>
+<l>    fill_up (LabelImageRegions, realRegion)</l>
+<c>    * 拟合最小外接矩形</c>
+<l>    shape_trans (realRegion, FitRegion, 'rectangle2')</l>
+<c>    * 计算面积差</c>
+<l>    difference (realRegion, FitRegion, LabelImageDifference)</l>
+<l>    area_center (LabelImageDifference, LabelImageArea, Row3, Column3)</l>
+<l>    if (LabelImageArea&gt;100)</l>
+<l>        dev_disp_text('标签不完整', 'image', 12, 120, 'red', [], [])</l>
+<l>    endif</l>
+<l>    *stop()</l>
 <c>    </c>
-<c>     </c>
-<c>    </c>
-<c>     **************************OCR识别**************************************</c>
-<l>    find_text (LabelImage, TextModel, TextResultID)</l>
-<c>    * Display the segmentation results</c>
-<l>    get_text_object (Characters, TextResultID, 'all_lines')</l>
-<l>    dev_display (LabelImage)</l>
-<l>    dev_display (Characters)</l>
-<c>    * Display the reading results</c>
-<l>    get_text_result (TextResultID, 'class', Classes)</l>
-<l>*    area_center (Characters, Area, Row, Column)</l>
-<l>*    disp_message (WindowHandle, Classes, 'image', 80, Column[I] - 3, 'green', 'false')</l>
-<l>*    stop()</l>
 <c>     </c>
 <c>    **************************一维条码定位及识别**************************************</c>
 <l>    find_bar_code (LabelImage, SymbolRegion, BarCodeHandle, 'Code 128', DecodedDataStrings)</l>
+<l>     dilation_rectangle1 (SymbolRegion, RegionDilation, 15, 15)</l>
 <l>    dev_display (Image)</l>
 <l>    dev_display (SymbolRegion)</l>
 <l>    get_bar_code_object (BarCodeObjects, BarCodeHandle, 'all', 'symbol_regions')</l>
@@ -136,14 +137,14 @@
 <l>        dev_display (ObjectSelected)</l>
 <l>    endfor</l>
 <l>    disp_message (WindowHandle, DecodedDataStrings, 'window', 12, 12, Colors, 'true')</l>
-<l>    stop()</l>
+<l>    *stop()</l>
 <c>    *****************************识别一维条码脏污及破损*********************************</c>
 <l>    if (DecodedDataStrings = [])</l>
 <l>         disp_message (WindowHandle, 'Code NG', 'window', 12, 120, 'red', 'true')</l>
 <l>    endif</l>
 <l>    if (DecodedDataStrings != [])</l>
 <c>        * 提取一维条码处的区域</c>
-<l>        dilation_rectangle1 (SymbolRegion, RegionDilation, 15, 15)</l>
+<c>       </c>
 <l>        reduce_domain (Image, RegionDilation, sub_SymbolRegion)</l>
 <l>        threshold (sub_SymbolRegion, Code_Regions, 5, 185)</l>
 <l>        connection(Code_Regions, ConnectedRegions)</l>
@@ -164,11 +165,131 @@
 <l>            if(Area&gt;600)</l>
 <l>                disp_message (WindowHandle, 'Code NG', 'window', 12, 120, 'red', 'true')</l>
 <l>            endif</l>
-<l>            stop()</l>
+<l>            *stop()</l>
 <l>        endfor</l>
 <l>    endif</l>
+<c>    </c>
+<c>    **************************检测空白区域的撕裂/划痕**************************************</c>
+<c>    *1. 找到模板区域</c>
+<l>    *stop()</l>
+<l>    dev_set_draw ('fill')</l>
+<l>    LabelRegion_white := LabelImage</l>
+<l>    for cVNumber:=1 to VNumber by 1</l>
+<l>        read_shape_model ('H:/projects/visual inspection/实时检测v2.0/'+cVNumber+'.shm', ModelID1)</l>
+<l>        get_shape_model_contours (ModelContours1, ModelID1, 1)</l>
+<l>        find_scaled_shape_model (LabelImage, ModelID1, -180, 180, 0.5, 1.2, 0.4, 0, 0.5, 'none', 55, 0.8, Row1, Column1, Angle1, Scale, Score1)</l>
+<l>        if(|Score1|=1)</l>
+<c>            * 重新显示原图</c>
+<l>            dev_display (Image)</l>
+<c>            * 生成一个单位矩阵</c>
+<l>            hom_mat2d_identity (HomMat2DIdentity)</l>
+<c>            * 平移</c>
+<l>            hom_mat2d_translate (HomMat2DIdentity, Row1, Column1, HomMat2DTranslate)</l>
+<c>            * 旋转</c>
+<l>            hom_mat2d_rotate (HomMat2DTranslate, Angle1, Row1, Column1, HomMat2DRotate)</l>
+<c>            * 放缩，得到最终的仿射变换矩阵</c>
+<l>*             hom_mat2d_scale (HomMat2DRotate, Scale[I], Scale[I], Row2[I], Column2[I], HomMat2DScale)</l>
+<c>            * 仿射变换</c>
+<l>            affine_trans_contour_xld (ModelContours1, ModelTrans, HomMat2DRotate)</l>
+<c>            * 显示模板</c>
+<l>            dev_display (ModelTrans)</l>
+<c>            * 填充模板区域</c>
+<l>            gen_region_contour_xld(ModelTrans, RegionContour, 'filled')</l>
+<l>            union1(RegionContour, RegionUnion)</l>
+<l>            shape_trans(RegionUnion, RegionTransRegion, 'convex')</l>
+<c>            * 剪切掉此区域</c>
+<l>            difference (LabelRegion_white, RegionTransRegion, LabelRegion_white)</l>
+<c>           </c>
+<l>        endif</l>
+<l>        dev_display (LabelRegion_white)</l>
+<l>    endfor</l>
+<c>    *2. 剪切掉条码区域</c>
+<l>    difference (LabelRegion_white, RegionDilation, LabelRegion_white)</l>
+<l>    reduce_domain (Image, LabelRegion_white, ImageReduced2)</l>
+<l>    *crop_domain (ImageReduced2, LabelImage_white)</l>
+<c>    * 3. OCR识别</c>
+<l>    find_text (ImageReduced2, TextModel, TextResultID)</l>
+<c>    * Display the segmentation results</c>
+<l>    get_text_object (Characters, TextResultID, 'all_lines')</l>
+<l>    dev_display (LabelImage)</l>
+<l>    dev_display (Characters)</l>
+<c>    * Display the reading results</c>
+<l>    get_text_result (TextResultID, 'class', Classes)</l>
+<l>*    area_center (Characters, Area, Row, Column)</l>
+<l>*    disp_message (WindowHandle, Classes, 'image', 80, Column[I] - 3, 'green', 'false')</l>
+<l>*    stop()</l>
+<c>    *4. 剪切掉OCR识别出的字符区域</c>
+<l>    union1 (Characters,CharactersUnion)</l>
+<l>    shape_trans (CharactersUnion, CharactersUnionTrans, 'convex')</l>
+<l>    difference (LabelRegion_white, CharactersUnionTrans, LabelRegion_white)</l>
+<l>    *opening_circle (LabelRegion_white, LabelRegion_white, 2)</l>
+<l>    reduce_domain (Image, LabelRegion_white, ImageReduced2)</l>
+<l>    opening_circle (LabelRegion_white, RegionOpening1, 2)</l>
+<l>    crop_domain (ImageReduced2, LabelImage_white)</l>
+<c></c>
+<c>    *5. 对剩下的空白区域进行高斯滤波，检测出划痕、撕裂</c>
+<l>    dev_display (LabelImage_white)</l>
+<l>    lines_gauss (LabelImage_white, Lines, 1.5, 3, 8, 'dark', 'true', 'bar-shaped', 'true')</l>
+<c>    </c>
+<l>    select_contours_xld (Lines,  crackContours, 'contour_length', 10, 99999, -0.5, 0.5) </l>
+<c>    </c>
+<l>    count_obj ( crackContours,  crackNumber)</l>
+<l>    if(|crackNumber|&gt;0)</l>
+<l>         dev_disp_text('空白区域有划痕、撕裂等缺陷。。。', 'image', 120, 120, 'red', [], [])</l>
+<l>    endif</l>
+<c>    </c>
 <l>endfor</l>
 <c></c>
+<c>*******************************************</c>
+<c>*           标签旋转角度检测       </c>
+<c>* 注：要求打光稳定，只检测出白色标签和上下高亮条纹，因为代码中写死区域顺序</c>
+<c>*******************************************</c>
+<l>read_image (Image, 'H:/projects/visual inspection/实时检测v2.0/矫正后 - 副本.bmp')</l>
+<c>***************Blob分析定位整个光模块**********************</c>
+<l>binary_threshold(Image,Region, 'max_separability', 'light', UsedThreshold)</l>
+<l>connection(Region, ConnectedRegionsLabel)</l>
+<l>select_shape (ConnectedRegionsLabel, SelectedRegions1, 'area', 'and', 2427.18, 480929)</l>
+<l>dilation_rectangle1 (SelectedRegions1, RegionDilation1, 50, 50)</l>
+<l>union1 (RegionDilation1, RegionUnion1)</l>
+<l>connection (RegionUnion1, ConnectedRegions1)</l>
+<l>shape_trans (ConnectedRegions1, RegionTrans2, 'rectangle2')</l>
+<l>count_obj (RegionTrans2, Number1)</l>
+<l>for Index := 1 to Number1 by 1</l>
+<l>    select_obj (RegionTrans2, ObjectSelected1, Index)</l>
+<c>    * 找到模块区域</c>
+<l>    reduce_domain (Image, ObjectSelected1, ImageReduced)</l>
+<l>    threshold (ImageReduced, Regions, 192, 255)</l>
+<l>    connection (Regions, ConnectedRegions2)</l>
+<l>    select_shape (ConnectedRegions2, SelectedRegions2, ['area','rectangularity'], 'and', [3120.67,0.6], [500000,1])</l>
+<l>    shape_trans (SelectedRegions2, RegionTrans3, 'rectangle2')</l>
+<c>  </c>
+<c>    * 选出标签区域  </c>
+<l>    select_shape (RegionTrans3, LableRegion, 'area', 'and', 246589, 500000)</l>
+<l>    count_obj (LableRegion, LableRegionNumber)</l>
+<c>    * 选出模块参考区域</c>
+<l>    select_shape (RegionTrans3, ReferrenceRegions, 'area', 'and', 0, 135402)</l>
+<l>    count_obj (ReferrenceRegions, ReferrenceRegionsNumber)</l>
+<c>    * 判断标签区域和作为参考的区域是否存在</c>
+<l>    if(LableRegionNumber&gt;0 )</l>
+<l>        if(ReferrenceRegionsNumber&gt;0)</l>
+<c>            * 分别计算标签和模块的角度，然后作差</c>
+<l>            orientation_region (LableRegion, LablePhi)</l>
+<l>            orientation_region (ReferrenceRegions, ReferrencePhi)</l>
+<c>            * 计算角度差</c>
+<l>            delta:= abs(LablePhi-ReferrencePhi[0])</l>
+<l>            count_obj (RegionTrans3, Number2)</l>
+<c>            * 计算标签的长/宽</c>
+<l>            reduce_domain (ImageReduced, LableRegion, LableImageReduced)</l>
+<l>            crop_domain (LableImageReduced, ImagePart)</l>
+<l>            get_image_size (ImagePart, Width, Height)</l>
+<c>            * 计算倾斜距离</c>
+<l>            d := Width*tan(delta)</l>
+<l>            *stop()</l>
+<l>*             opening_rectangle1 (ConnectedRegions2, RegionOpening1, 5, 5)</l>
+<l>        endif</l>
+<l>    endif</l>
+<l>endfor</l>
+<l>stop()</l>
 <c></c>
 <c></c>
 <c></c>

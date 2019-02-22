@@ -10,8 +10,14 @@
 <l>draw_rectangle1 (WindowHandle, Row1, Column1, Row2, Column2)</l>
 <l>gen_rectangle1 (Rectangle, Row1, Column1, Row2, Column2)</l>
 <l>reduce_domain (Image,Rectangle , ImageReduced)</l>
+<l>threshold (ImageReduced, Regions, 0, 198)</l>
+<l>connection (Regions, ConnectedRegions)</l>
+<l>dilation_circle (ConnectedRegions, RegionDilation, 2)</l>
+<l>union1 (RegionDilation, RegionUnion)</l>
+<l>connection (RegionUnion, ConnectedRegions1)</l>
 <c></c>
-<l>lines_gauss (ImageReduced, Lines, 1.5, 3, 8, 'dark', 'true', 'parabolic', 'true')  </l>
+<c></c>
+<l>*lines_gauss (ImageReduced, Lines, 1.5, 3, 8, 'dark', 'true', 'parabolic', 'true')  </l>
 </body>
 <docu id="main">
 <parameters/>

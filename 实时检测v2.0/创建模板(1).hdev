@@ -4,9 +4,9 @@
 <interface/>
 <body>
 <c>*****************基于形状的模板定位：创建模板*******************</c>
-<l>open_file('H:/projects/visual inspection/张前亮的程序/VariationModelLocation.txt', 'output', FileHandle)</l>
+<l>open_file('H:/projects/visual inspection/实时检测v2.0/VariationModelLocation.txt', 'output', FileHandle)</l>
 <c>* 读入待取模板的图像</c>
-<l>read_image (Image, 'H:/projects/visual inspection/张前亮的程序/矫正后.bmp')</l>
+<l>read_image (Image, 'H:/projects/visual inspection/实时检测v2.0/矫正后.bmp')</l>
 <c>* 获取图像尺寸</c>
 <l>get_image_size (Image, Width, Height)</l>
 <c>* 先关闭窗口</c>
@@ -46,7 +46,7 @@
 <l>    create_scaled_shape_model (ImageReduced, 5, -180, 180, 'auto', 0.2, 2, 'auto', 'auto', 'ignore_global_polarity', 'auto', 'auto', ModelID)  </l>
 <c>    * 计算机自动计算的参数</c>
 <c>    *get_shape_model_params (ModelID, NumLevels, AngleStart, AngleExtent, AngleStep, *ScaleMin, ScaleMax, ScaleStep, Metric, MinContrast)</c>
-<l>    find_shape_model(ImageReduced, ModelID, -0.39, 0.79, 0.5, 1, 0.5, 'least_squares', 0, 0.9, RowFind, ColumnFind, AngleFind, ScoreFind)</l>
+<l>    find_shape_model(ImageReduced, ModelID, -0.39, 0.79, 0.4, 1, 0.5, 'least_squares', 0, 0.9, RowFind, ColumnFind, AngleFind, ScoreFind)</l>
 <c>    * 得到基于形状的模板轮廓</c>
 <l>    get_shape_model_contours (ModelContours, ModelID, 1)</l>
 <c></c>
@@ -66,7 +66,7 @@
 <l>    disp_continue_message (WindowHandle, 'black', 'true')</l>
 <l>    stop ()</l>
 <c>    * 将制作好的模板保存到本地</c>
-<l>    write_shape_model (ModelID, 'H:/projects/visual inspection/张前亮的程序'+cVNumber+'.shm')</l>
+<l>    write_shape_model (ModelID, 'H:/projects/visual inspection/实时检测v2.0/'+cVNumber+'.shm')</l>
 <c>    </c>
 <c>    ***********************制作variation_model*****************************</c>
 <l>*    edges_sub_pix (ImageReduced, Edges, 'sobel_fast', 0.5, 10, 20)</l>
@@ -93,7 +93,7 @@
 <l>    disp_continue_message (WindowHandle, 'black', 'true')</l>
 <l>    stop()</l>
 <c>    * 将制作好的模板保存到本地</c>
-<l>    write_variation_model(VarModelID, 'H:/projects/visual inspection/张前亮的程序'+cVNumber+'.vam')</l>
+<l>    write_variation_model(VarModelID, 'H:/projects/visual inspection/实时检测v2.0/'+cVNumber+'.vam')</l>
 <l>endfor</l>
 <l>close_file(FileHandle)</l>
 </body>
